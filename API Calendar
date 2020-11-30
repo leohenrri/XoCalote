@@ -1,0 +1,58 @@
+const {google} = require('googleapis')
+
+const {OAuth2} = google.auth
+
+const oAuth2Client = new OAuth2('593008818498-jeedp7s92c2fvmjlgm6qbvn0a90u6imu.apps.googleusercontent.com',
+ 'A06172LJz_mYLTwJfsQi1uPP') 
+oAuth2Client.setCredencials({
+    refresh_token:
+     '1//04mr_52x7fdnHCgYIARAAGAQSNwF-L9Ir3n1cFWn92AiyJz6znDceixlWe5XdTQndyjl4EfPEYgLa9H1biMSihah_vmecWcL1uX4',
+})
+const calendar = google.calendar({version: 'v3', auth: oAuth2Client})
+
+const eventStartTime = new Date()
+eventStartTime.setDate(eventStartTime.getDay()+2)
+
+const eventEndTime = new Date()
+eventEndTime.setDate(eventEndTime.getDay()+2)
+eventEndTime.setMinutes(eventEndTime.getMinutes()+45)
+
+const event ={
+    sumary: 'Receber do João',
+    Location: 'Av. Pedro Álvares Cabral - Vila Mariana, São Paulo - SP, 04094-050',
+    Description: '200 reais que emprestei para pagamento da conta de internet',
+    Start:{
+        DateTime: eventStartTime,
+        timeZone:'America/Brasilia',
+    },
+    end:{
+        DateTime:eventEndTime,
+        timeZone:'America/Brasilia',
+    },
+    colorId: 1,
+}
+calendar.freebusy.query(
+    {
+        resource:{
+            timeMin: eventStartTime,
+            timeMax: eventEndTime,
+            timeZone:'America/Brasilia',
+            items:[{id:'primary'}],
+        },
+    },
+    (err, res)=>{
+        if(err) return console.error('Agendamento ocupado', err)
+
+        const eventsArr = res.data.calendars.primary.busy
+        
+        if(eventsArr.lenght ===0)
+        return calendar.events.insert(
+            {calendarId: 'primary', resource: event },
+            err => {
+            if (err) return console.error('Erro ao Criar Evento', err)
+            return console.log('Evento Criado om Sucesso!')
+            }
+        )
+    return console.log('Desculpa, estou ocupado')
+    }
+)
